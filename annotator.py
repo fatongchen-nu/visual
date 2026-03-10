@@ -231,15 +231,28 @@ def color_to_mask(color_img: np.ndarray) -> np.ndarray:
 
 
 def extract_editor_rgb(editor_value) -> np.ndarray:
+    """Extract RGB pixels from Gradio ImageEditor payload safely."""
     if isinstance(editor_value, dict):
-        img = editor_value.get("composite") or editor_value.get("background")
+        img = editor_value.get("composite", None)
+        if img is None:
+            img = editor_value.get("background", None)
+        if img is None:
+            layers = editor_value.get("layers", []) or []
+            if len(layers) > 0:
+                img = layers[-1]
     else:
         img = editor_value
+
+    if img is None:
+        return np.zeros((512, 512, 3), dtype=np.uint8)
+
     arr = np.array(img, dtype=np.uint8)
     if arr.ndim == 2:
         arr = np.stack([arr, arr, arr], axis=-1)
-    if arr.shape[-1] == 4:
+    if arr.ndim == 3 and arr.shape[-1] == 4:
         arr = arr[..., :3]
+    if arr.ndim != 3 or arr.shape[-1] != 3:
+        raise ValueError(f"Unsupported editor image shape: {arr.shape}")
     return arr
 
 
