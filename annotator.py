@@ -9,7 +9,9 @@ import cv2
 import gradio as gr
 import numpy as np
 from PIL import Image
+import os
 
+os.chdir(Path(__file__).parent)
 DATASET = Path("dataset")
 IMAGES_DIR = DATASET / "images"
 MASKS_DIR = DATASET / "masks"
